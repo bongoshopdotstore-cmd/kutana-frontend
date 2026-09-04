@@ -12,7 +12,7 @@ const api = async (path, options = {}) => {
 }
 
 function Logo({ compact = false }) {
-  return <div className="flex items-center gap-2.5"><img src="/kutana-mark.svg" alt="" className="h-10 w-10 shrink-0 rounded-xl shadow-[0_8px_25px_rgba(183,243,74,.15)] transition-transform duration-500 ease-spring"/><div className={compact ? 'room-logo-text' : ''}><span className="display block text-xl font-bold leading-none tracking-tight">kutana</span><span className="mt-1 hidden text-[9px] font-semibold uppercase tracking-[.16em] text-zinc-500 md:block">Face-to-face conversations</span></div></div>
+  return <div className="flex items-center gap-2.5"><img src="/kutana-mark.svg" alt="" className="h-10 w-10 shrink-0 rounded-xl shadow-[0_8px_25px_rgba(183,243,74,.15)] transition-transform duration-500 ease-spring"/><div className={compact ? 'room-logo-text' : ''}><span className="display block text-xl font-bold leading-none tracking-tight">kutana</span><span className="mt-1 hidden text-[9px] font-semibold uppercase tracking-[.16em] text-zinc-500 md:block">Bored ..?, Let chat</span></div></div>
 }
 
 function PageLink({ page, onNavigate, children, className = '' }) {
