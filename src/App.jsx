@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, Ban, Camera, CameraOff, ChevronRight, Columns2, Flag, LockKeyhole, Maximize2, MessageCircle, Mic, MicOff, Minus, Move, PanelsTopLeft, PictureInPicture2, ShieldCheck, Sparkles, UserRound, Video, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Ban, Camera, CameraOff, ChevronRight, Code2, Columns2, Flag, GraduationCap, LockKeyhole, Mail, Maximize2, MessageCircle, Mic, MicOff, Minus, Move, PanelsTopLeft, Phone, PictureInPicture2, ShieldCheck, UserRound, Video, X } from 'lucide-react'
 
 const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '')
 const WS_BASE = (import.meta.env.VITE_WS_URL || '').replace(/\/$/, '')
@@ -12,10 +12,14 @@ const api = async (path, options = {}) => {
 }
 
 function Logo({ compact = false }) {
-  return <div className="flex items-center gap-2.5"><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-lime text-ink transition-transform duration-500 ease-spring"><Sparkles size={18} strokeWidth={2.5}/></div><span className={`display text-xl font-bold tracking-tight ${compact ? 'room-logo-text' : ''}`}>kutana</span></div>
+  return <div className="flex items-center gap-2.5"><img src="/kutana-mark.svg" alt="" className="h-10 w-10 shrink-0 rounded-xl shadow-[0_8px_25px_rgba(183,243,74,.15)] transition-transform duration-500 ease-spring"/><div className={compact ? 'room-logo-text' : ''}><span className="display block text-xl font-bold leading-none tracking-tight">kutana</span><span className="mt-1 hidden text-[9px] font-semibold uppercase tracking-[.16em] text-zinc-500 md:block">Face-to-face conversations</span></div></div>
 }
 
-function Landing({ onStart, user, onAuth, onLogout }) {
+function PageLink({ page, onNavigate, children, className = '' }) {
+  return <a href={`/?page=${page}`} onClick={e => { e.preventDefault(); onNavigate(page) }} className={className}>{children}</a>
+}
+
+function Landing({ onStart, user, onAuth, onLogout, onNavigate }) {
   return <main className="relative min-h-screen overflow-hidden bg-ink grid-bg">
     <div className="glow pointer-events-none absolute left-1/2 top-10 h-[680px] w-[900px] -translate-x-1/2" />
     <nav className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-6 py-6 lg:px-10">
@@ -32,8 +36,58 @@ function Landing({ onStart, user, onAuth, onLogout }) {
         {[['01','Instant connection','One click puts you face-to-face with someone new.'],['02','Private by design','Calls are peer-to-peer. We never record your conversations.'],['03','You’re in control','Skip, mute, block, or report whenever you need.']].map(([n,t,d]) => <div key={n} className="feature-card glass rounded-3xl p-7"><span className="text-xs font-bold text-lime">{n}</span><h3 className="display mt-8 text-xl font-semibold">{t}</h3><p className="mt-3 leading-6 text-zinc-400">{d}</p></div>)}
       </div>
     </section>
-    <footer className="relative border-t border-white/5 px-6 py-6 text-center text-xs text-zinc-600">© 2026 Kutana · Community guidelines · Privacy · Terms</footer>
+    <footer className="relative border-t border-white/5 px-5 py-7 text-xs text-zinc-500"><div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 sm:flex-row"><span>© 2026 Kutana</span><nav aria-label="Legal and company" className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2"><PageLink page="guidelines" onNavigate={onNavigate} className="footer-link">Community Guidelines</PageLink><PageLink page="privacy" onNavigate={onNavigate} className="footer-link">Privacy</PageLink><PageLink page="terms" onNavigate={onNavigate} className="footer-link">Terms</PageLink><PageLink page="developer" onNavigate={onNavigate} className="footer-link text-lime/80">Developed by Shaibu Hamis Mzogo</PageLink></nav></div></footer>
   </main>
+}
+
+function InfoSection({ title, children }) {
+  return <section className="info-section"><h2 className="display text-xl font-semibold text-white sm:text-2xl">{title}</h2><div className="mt-3 space-y-3 leading-7 text-zinc-400">{children}</div></section>
+}
+
+function PageShell({ eyebrow, title, intro, onNavigate, children }) {
+  return <main className="page-enter min-h-screen bg-ink grid-bg"><nav className="sticky top-0 z-30 border-b border-white/5 bg-ink/80 px-5 py-4 backdrop-blur-xl sm:px-8"><div className="mx-auto flex max-w-5xl items-center justify-between"><button onClick={() => onNavigate('home')} className="spring-button text-left" aria-label="Go to Kutana home"><Logo/></button><button onClick={() => onNavigate('home')} className="spring-button flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-zinc-300 hover:bg-white/5 hover:text-white"><ArrowLeft size={16}/> Home</button></div></nav><div className="mx-auto max-w-4xl px-5 pb-20 pt-14 sm:px-8 sm:pt-20"><p className="text-xs font-bold uppercase tracking-[.22em] text-lime">{eyebrow}</p><h1 className="display mt-4 text-4xl font-semibold tracking-[-.045em] text-white sm:text-6xl">{title}</h1><p className="mt-5 max-w-2xl text-base leading-7 text-zinc-400 sm:text-lg sm:leading-8">{intro}</p><div className="mt-12 space-y-5">{children}</div></div></main>
+}
+
+function GuidelinesPage({ onNavigate }) {
+  return <PageShell eyebrow="Safety first" title="Community Guidelines" intro="Kutana is built for spontaneous, respectful conversations. These rules apply to every video call, message, profile, and account." onNavigate={onNavigate}>
+    <InfoSection title="Adults only"><p>You must be at least 18 years old to use Kutana. Do not display, request, discuss, or distribute sexual content involving anyone under 18. Suspected child exploitation is prohibited and may be reported to the appropriate authorities.</p></InfoSection>
+    <InfoSection title="Respect consent and boundaries"><p>Do not expose yourself, display unwanted sexual content, pressure another person, or continue behavior after they ask you to stop. A stranger can leave at any time and does not owe you a conversation.</p></InfoSection>
+    <InfoSection title="Treat people with dignity"><p>Harassment, threats, stalking, bullying, hateful conduct, slurs, and targeted abuse are not allowed. Do not discriminate based on identity, nationality, disability, religion, gender, or sexual orientation.</p></InfoSection>
+    <InfoSection title="Protect privacy"><p>Do not record, screenshot, publish, identify, or share another person without their clear permission. Never request passwords, financial credentials, home addresses, or other highly sensitive information.</p></InfoSection>
+    <InfoSection title="No illegal or deceptive activity"><p>Do not use Kutana for scams, spam, impersonation, trafficking, exploitation, malware, illegal sales, graphic violence, or promotion of dangerous criminal behavior.</p></InfoSection>
+    <InfoSection title="Reporting and enforcement"><p>Use the report and block controls when someone violates these rules. Reports may be reviewed by moderators. Kutana may restrict or terminate access, preserve relevant evidence, or contact authorities when reasonably necessary to protect people or comply with law.</p></InfoSection>
+  </PageShell>
+}
+
+function PrivacyPage({ onNavigate }) {
+  return <PageShell eyebrow="Effective September 5, 2026" title="Privacy Notice" intro="This notice explains what Kutana processes, why it is needed, and the choices available to you." onNavigate={onNavigate}>
+    <InfoSection title="Information you provide"><p>If you create an account, we process your username, optional email address, and securely hashed password. When you submit a report, we store the selected reason, optional details, relevant session identifier, account references when available, status, and submission time.</p></InfoSection>
+    <InfoSection title="Calls and messages"><p>Video and audio are transmitted through WebRTC directly between participants when possible. When direct connection is unavailable, encrypted media packets may pass through our TURN relay. Kutana does not record your calls. Text messages are relayed during the active conversation and are not intentionally stored as chat history.</p></InfoSection>
+    <InfoSection title="Technical information"><p>Our infrastructure may process IP addresses, timestamps, browser and device details, connection metadata, security logs, cookies, and diagnostic events. Session cookies support sign-in, while connection records help operate and protect the service.</p></InfoSection>
+    <InfoSection title="How information is used"><p>We use information to provide matching and communications, maintain accounts and block lists, investigate reports, prevent abuse, secure the platform, troubleshoot failures, and comply with legal obligations.</p></InfoSection>
+    <InfoSection title="Service providers and disclosure"><p>Hosting, network, database, and content-delivery providers process limited information on our behalf. Information may also be disclosed when required by law, to investigate abuse, protect users, or complete a legitimate business transfer with appropriate safeguards.</p></InfoSection>
+    <InfoSection title="Retention and your choices"><p>Ephemeral chat content is not retained as conversation history. Account, report, moderation, security, and backup records are kept only as long as reasonably needed for their purpose and applicable obligations. You can stop camera or microphone access in your browser, leave a conversation, or contact us about your account and personal information.</p></InfoSection>
+    <InfoSection title="Contact"><p>Privacy questions and requests can be sent to <a className="text-lime hover:underline" href="mailto:bravomzogo@gmail.com">bravomzogo@gmail.com</a>. We may need to verify your identity before completing a request.</p></InfoSection>
+  </PageShell>
+}
+
+function TermsPage({ onNavigate }) {
+  return <PageShell eyebrow="Effective September 5, 2026" title="Terms of Use" intro="By accessing Kutana, you agree to these terms and the Community Guidelines. If you do not agree, do not use the service." onNavigate={onNavigate}>
+    <InfoSection title="Eligibility"><p>You must be at least 18 years old and legally capable of accepting these terms. You are responsible for complying with the laws that apply where you live.</p></InfoSection>
+    <InfoSection title="Your account"><p>You are responsible for your credentials and activity. Provide accurate information, keep your password confidential, and tell us if you suspect unauthorized access. We may suspend accounts that threaten users or the service.</p></InfoSection>
+    <InfoSection title="Acceptable use"><p>You must follow the Community Guidelines. You may not exploit, interfere with, reverse engineer, overload, scrape, automate access to, or bypass safety and access controls protecting Kutana.</p></InfoSection>
+    <InfoSection title="Your content"><p>You remain responsible for content you transmit. You confirm that you have the necessary rights to share it and grant Kutana the limited permission needed to transmit and moderate it solely for operating and protecting the service.</p></InfoSection>
+    <InfoSection title="Service availability"><p>Random matching depends on available participants, networks, browsers, and third-party infrastructure. Kutana may change, interrupt, or discontinue features. The service is provided on an “as available” basis to the extent permitted by law.</p></InfoSection>
+    <InfoSection title="Safety and interactions"><p>Online interactions carry risk. Do not share sensitive information or send money to strangers. Kutana cannot guarantee another participant’s identity, statements, intentions, or conduct. Use Skip, Block, and Report whenever a conversation feels unsafe.</p></InfoSection>
+    <InfoSection title="Enforcement and changes"><p>We may investigate violations and restrict access when reasonably necessary. These terms may be updated as the service evolves. Material changes will be identified by a revised effective date.</p></InfoSection>
+    <InfoSection title="Contact"><p>Questions about these terms can be sent to <a className="text-lime hover:underline" href="mailto:bravomzogo@gmail.com">bravomzogo@gmail.com</a>.</p></InfoSection>
+  </PageShell>
+}
+
+function DeveloperPage({ onNavigate }) {
+  return <PageShell eyebrow="Meet the developer" title="Built with care in Tanzania." intro="Kutana was designed and engineered to make spontaneous online conversations feel simpler, safer, and more human." onNavigate={onNavigate}>
+    <section className="developer-card glass overflow-hidden rounded-[2rem] p-3 sm:p-5"><div className="grid items-center gap-7 md:grid-cols-[.85fr_1.15fr]"><img src="/shaibu-hamis-mzogo.jpeg" alt="Shaibu Hamis Mzogo" className="aspect-square h-full w-full rounded-[1.4rem] object-cover object-center grayscale-[.15]"/><div className="p-3 sm:p-5"><div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-lime/10 text-lime"><Code2 size={23}/></div><h2 className="display mt-6 text-3xl font-semibold tracking-tight text-white">Shaibu Hamis Mzogo</h2><p className="mt-3 flex items-center gap-2 text-zinc-400"><GraduationCap size={18} className="text-lime"/> Software Engineering Graduate</p><div className="mt-8 grid gap-3"><a href="tel:+255782728021" className="contact-link"><Phone size={18}/> <span><small>Call or WhatsApp</small>+255 782 728 021</span><ArrowRight size={17} className="ml-auto"/></a><a href="mailto:bravomzogo@gmail.com" className="contact-link"><Mail size={18}/> <span><small>Email</small>bravomzogo@gmail.com</span><ArrowRight size={17} className="ml-auto"/></a></div></div></div></section>
+  </PageShell>
 }
 
 function Permission({ onAllow, onBack, error }) {
@@ -175,9 +229,23 @@ function AuthModal({ onClose, onSuccess }) {
 }
 
 export default function App() {
+  const validPages = ['home', 'guidelines', 'privacy', 'terms', 'developer']
+  const requestedPage = new URLSearchParams(window.location.search).get('page') || 'home'
+  const [page, setPage] = useState(validPages.includes(requestedPage) ? requestedPage : 'home')
   const [screen, setScreen] = useState('home'), [stream, setStream] = useState(null), [error, setError] = useState(''), [user, setUser] = useState(null), [authOpen, setAuthOpen] = useState(false)
   useEffect(() => { api('auth/me/').then(x => setUser(x.user)).catch(() => {}) }, [])
+  useEffect(() => {
+    const syncPage = () => { const next = new URLSearchParams(window.location.search).get('page') || 'home'; setPage(validPages.includes(next) ? next : 'home') }
+    window.addEventListener('popstate', syncPage)
+    return () => window.removeEventListener('popstate', syncPage)
+  }, [])
+  useEffect(() => { const names = { home: 'Meet someone new', guidelines: 'Community Guidelines', privacy: 'Privacy Notice', terms: 'Terms of Use', developer: 'Developer' }; document.title = `${names[page]} — Kutana` }, [page])
   const allow = async () => { try { const media = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } }, audio: { echoCancellation: true, noiseSuppression: true } }); setStream(media); setScreen('room') } catch { setError('Camera or microphone access was denied. Check your browser permissions and try again.') } }
   const home = () => { stream?.getTracks().forEach(t => t.stop()); setStream(null); setScreen('home') }
-  return <>{screen === 'home' && <Landing onStart={() => setScreen('permission')} user={user} onAuth={() => setAuthOpen(true)} onLogout={() => api('auth/logout/', {method:'POST'}).then(() => setUser(null))}/>} {screen === 'permission' && <Permission onAllow={allow} onBack={() => setScreen('home')} error={error}/>} {screen === 'room' && stream && <Room stream={stream} onExit={home} user={user}/>} {authOpen && <AuthModal onClose={() => setAuthOpen(false)} onSuccess={u => { setUser(u); setAuthOpen(false) }}/>}</>
+  const navigatePage = next => { window.history.pushState({}, '', next === 'home' ? '/' : `/?page=${next}`); setPage(next); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  if (page === 'guidelines') return <GuidelinesPage onNavigate={navigatePage}/>
+  if (page === 'privacy') return <PrivacyPage onNavigate={navigatePage}/>
+  if (page === 'terms') return <TermsPage onNavigate={navigatePage}/>
+  if (page === 'developer') return <DeveloperPage onNavigate={navigatePage}/>
+  return <>{screen === 'home' && <Landing onStart={() => setScreen('permission')} user={user} onAuth={() => setAuthOpen(true)} onLogout={() => api('auth/logout/', {method:'POST'}).then(() => setUser(null))} onNavigate={navigatePage}/>} {screen === 'permission' && <Permission onAllow={allow} onBack={() => setScreen('home')} error={error}/>} {screen === 'room' && stream && <Room stream={stream} onExit={home} user={user}/>} {authOpen && <AuthModal onClose={() => setAuthOpen(false)} onSuccess={u => { setUser(u); setAuthOpen(false) }}/>}</>
 }

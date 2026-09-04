@@ -28,6 +28,17 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .spring-button:active { transform: scale(.92); transition-duration: .12s; }
 .feature-card { transition: transform .55s var(--spring), border-color .35s ease, background-color .35s ease, box-shadow .55s var(--spring); }
 .feature-card:hover { transform: translateY(-6px) scale(1.012); border-color: rgba(183,243,74,.18); box-shadow: 0 22px 60px rgba(0,0,0,.24); }
+.footer-link { position: relative; color: #71717a; transition: color .25s ease; }
+.footer-link:hover { color: #fafafa; }
+.footer-link::after { content: ''; position: absolute; right: 0; bottom: -.25rem; left: 0; height: 1px; background: #b7f34a; transform: scaleX(0); transform-origin: right; transition: transform .4s var(--spring); }
+.footer-link:hover::after { transform: scaleX(1); transform-origin: left; }
+.info-section { border: 1px solid rgba(255,255,255,.08); border-radius: 1.5rem; padding: 1.5rem; background: rgba(24,24,27,.66); backdrop-filter: blur(16px); transition: transform .5s var(--spring), border-color .3s ease, background-color .3s ease; }
+.info-section:hover { transform: translateY(-2px); border-color: rgba(183,243,74,.14); background: rgba(30,30,33,.78); }
+.contact-link { display: flex; align-items: center; gap: .85rem; min-width: 0; border: 1px solid rgba(255,255,255,.09); border-radius: 1rem; padding: .85rem 1rem; color: #e4e4e7; background: rgba(9,9,11,.5); transition: transform .4s var(--spring), border-color .25s ease, background-color .25s ease; }
+.contact-link:hover { transform: translateX(4px); border-color: rgba(183,243,74,.25); background: rgba(183,243,74,.06); }
+.contact-link > span { display: flex; min-width: 0; flex-direction: column; font-size: .9rem; overflow-wrap: anywhere; }
+.contact-link small { margin-bottom: .1rem; color: #71717a; font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.developer-card { box-shadow: 0 35px 90px rgba(0,0,0,.3); }
 .video-pane, .self-panel { transition: width .55s var(--spring), height .55s var(--spring); }
 .call-dock { padding-bottom: max(.375rem, env(safe-area-inset-bottom)); transition: transform .45s var(--spring), opacity .3s ease; }
 .chat-form { padding-bottom: max(.75rem, env(safe-area-inset-bottom)); }
