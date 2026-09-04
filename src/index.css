@@ -28,7 +28,7 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .spring-button:active { transform: scale(.92); transition-duration: .12s; }
 .feature-card { transition: transform .55s var(--spring), border-color .35s ease, background-color .35s ease, box-shadow .55s var(--spring); }
 .feature-card:hover { transform: translateY(-6px) scale(1.012); border-color: rgba(183,243,74,.18); box-shadow: 0 22px 60px rgba(0,0,0,.24); }
-.video-pane { transition: height .55s var(--spring); }
+.video-pane, .self-panel { transition: width .55s var(--spring), height .55s var(--spring); }
 .call-dock { padding-bottom: max(.375rem, env(safe-area-inset-bottom)); transition: transform .45s var(--spring), opacity .3s ease; }
 .chat-form { padding-bottom: max(.75rem, env(safe-area-inset-bottom)); }
 
@@ -51,8 +51,7 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   .room-logo-text { display: none; }
   .room-header { gap: .5rem; }
   .room-status { margin-inline: auto; }
-  .next-label { display: none; }
-  .next-control { width: 2.75rem; justify-content: center; padding-inline: 0; }
+  .next-control { justify-content: center; padding-inline: .65rem; }
   .call-dock { gap: .3rem; }
 }
 
@@ -61,8 +60,11 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   .video-shell { padding: .25rem; }
   .call-dock { bottom: .3rem; transform: translateX(-50%) scale(.9); transform-origin: bottom center; }
   .layout-picker { top: .3rem; }
+  .side-layout-button { display: block; }
   .self-tile { height: 5.5rem; width: 8rem; }
   .chat-sheet { height: min(76dvh, 24rem); }
+  .remote-label { top: .4rem; left: .4rem; }
+  .safety-actions { top: 2.55rem; left: .4rem; }
 }
 
 @supports (padding: env(safe-area-inset-top)) {
