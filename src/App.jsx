@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, Ban, Camera, CameraOff, ChevronRight, Flag, LockKeyhole, MessageCircle, Mic, MicOff, ShieldCheck, Sparkles, UserRound, Video, X } from 'lucide-react'
+import { ArrowRight, Ban, Camera, CameraOff, ChevronRight, Flag, LockKeyhole, Maximize2, MessageCircle, Mic, MicOff, Minus, Move, PanelsTopLeft, PictureInPicture2, ShieldCheck, Sparkles, UserRound, Video, X } from 'lucide-react'
 
 const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '')
 const WS_BASE = (import.meta.env.VITE_WS_URL || '').replace(/\/$/, '')
@@ -45,13 +45,14 @@ function Control({ onClick, active = true, danger = false, children, label }) {
 }
 
 function Room({ stream, onExit, user }) {
-  const localVideo = useRef(null), remoteVideo = useRef(null), ws = useRef(null), peer = useRef(null)
+  const localVideo = useRef(null), remoteVideo = useRef(null), videoStage = useRef(null), ws = useRef(null), peer = useRef(null), dragState = useRef(null)
   const [status, setStatus] = useState('connecting'), [muted, setMuted] = useState(false), [cameraOn, setCameraOn] = useState(true)
   const [messages, setMessages] = useState([]), [draft, setDraft] = useState(''), [chatOpen, setChatOpen] = useState(true)
   const [session, setSession] = useState(null), [partnerUserId, setPartnerUserId] = useState(null), [reporting, setReporting] = useState(false)
+  const [layout, setLayout] = useState('pip'), [selfVisible, setSelfVisible] = useState(true), [selfPosition, setSelfPosition] = useState(null)
   const iceServers = useRef([{ urls: 'stun:stun.l.google.com:19302' }])
 
-  useEffect(() => { if (localVideo.current) localVideo.current.srcObject = stream }, [stream])
+  useEffect(() => { if (localVideo.current) localVideo.current.srcObject = stream }, [stream, layout, selfVisible])
   useEffect(() => {
     let cancelled = false
     api('rtc-config/').then(x => { iceServers.current = x.iceServers }).catch(() => {})
@@ -96,15 +97,36 @@ function Room({ stream, onExit, user }) {
   const toggleVideo = () => { const enabled = !cameraOn; stream.getVideoTracks().forEach(t => t.enabled = enabled); setCameraOn(enabled); send({ type: 'media-state', audio: !muted, video: enabled }) }
   const postMessage = e => { e.preventDefault(); const text = draft.trim().slice(0, 500); if (!text || status === 'waiting') return; send({ type: 'chat', message: text }); setMessages(old => [...old, { mine: true, text }]); setDraft('') }
   const block = async () => { if (!partnerUserId) return alert(user ? 'This guest cannot be permanently blocked.' : 'Sign in to block people permanently.'); try { await api('blocks/', { method: 'POST', body: JSON.stringify({ userId: partnerUserId }) }); next() } catch (e) { alert(e.message) } }
+  const changeLayout = nextLayout => { setLayout(nextLayout); setSelfPosition(null); setSelfVisible(true) }
+  const startDrag = e => {
+    if (layout !== 'pip' || !videoStage.current) return
+    const stage = videoStage.current.getBoundingClientRect(), tile = e.currentTarget.getBoundingClientRect()
+    dragState.current = { pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, x: tile.left - stage.left, y: tile.top - stage.top, width: tile.width, height: tile.height }
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+  const moveDrag = e => {
+    const drag = dragState.current
+    if (!drag || drag.pointerId !== e.pointerId || !videoStage.current) return
+    const stage = videoStage.current.getBoundingClientRect()
+    setSelfPosition({ x: Math.max(8, Math.min(stage.width - drag.width - 8, drag.x + e.clientX - drag.startX)), y: Math.max(8, Math.min(stage.height - drag.height - 8, drag.y + e.clientY - drag.startY)) })
+  }
+  const stopDrag = e => { if (dragState.current?.pointerId === e.pointerId) dragState.current = null }
 
   return <div className="flex h-screen flex-col overflow-hidden bg-ink">
     <header className="flex h-16 shrink-0 items-center justify-between border-b border-white/10 px-5"><Logo/><div className="flex items-center gap-2 text-xs text-zinc-400"><span className={`h-2 w-2 rounded-full ${status === 'live' ? 'bg-lime' : 'bg-amber-400 animate-pulse'}`}/>{status === 'live' ? 'Connected' : status === 'waiting' ? 'Finding someone…' : status === 'left' ? 'Stranger left' : 'Connecting…'}</div><button onClick={end} className="text-sm text-zinc-400 hover:text-white">Leave</button></header>
     <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
       <section className="relative flex min-h-0 flex-1 bg-zinc-950 p-3 sm:p-5">
-        <div className="relative h-full w-full overflow-hidden rounded-3xl border border-white/10 bg-zinc-900">
-          <video ref={remoteVideo} autoPlay playsInline className="h-full w-full object-cover"/>
-          {status !== 'live' && <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-950/90"><div className="relative"><div className="h-20 w-20 animate-ping rounded-full border border-lime/30"/><div className="absolute inset-0 flex items-center justify-center"><UserRound className="text-lime" size={28}/></div></div><h3 className="display mt-6 text-xl font-semibold">{status === 'left' ? 'Your partner disconnected' : 'Looking for someone great'}</h3><p className="mt-2 text-sm text-zinc-500">{status === 'left' ? 'Tap Next when you’re ready.' : 'This usually takes just a moment.'}</p></div>}
-          <div className="absolute right-4 top-4 h-28 w-40 overflow-hidden rounded-2xl border-2 border-white/20 bg-zinc-800 shadow-2xl sm:h-36 sm:w-52"><video ref={localVideo} autoPlay muted playsInline className="video-mirror h-full w-full object-cover"/>{!cameraOn && <div className="absolute inset-0 flex items-center justify-center bg-zinc-800"><CameraOff className="text-zinc-500"/></div>}</div>
+        <div ref={videoStage} className="relative h-full w-full overflow-hidden rounded-3xl border border-white/10 bg-zinc-900">
+          <div className={`relative w-full overflow-hidden bg-zinc-900 transition-all ${layout === 'stacked' && selfVisible ? 'h-1/2 border-b border-white/10' : 'h-full'}`}>
+            <video ref={remoteVideo} autoPlay playsInline className="h-full w-full object-cover"/>
+            <span className="absolute bottom-3 left-3 rounded-full bg-black/45 px-3 py-1 text-xs font-semibold backdrop-blur">Stranger</span>
+            {status !== 'live' && <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-950/90"><div className="relative"><div className="h-20 w-20 animate-ping rounded-full border border-lime/30"/><div className="absolute inset-0 flex items-center justify-center"><UserRound className="text-lime" size={28}/></div></div><h3 className="display mt-6 text-xl font-semibold">{status === 'left' ? 'Your partner disconnected' : 'Looking for someone great'}</h3><p className="mt-2 text-sm text-zinc-500">{status === 'left' ? 'Tap Next when you’re ready.' : 'This usually takes just a moment.'}</p></div>}
+            {session && <div className="absolute left-4 top-4 flex gap-2"><button onClick={() => setReporting(true)} className="rounded-full bg-black/40 p-2.5 text-zinc-300 backdrop-blur hover:text-red-300" title="Report"><Flag size={17}/></button><button onClick={block} className="rounded-full bg-black/40 p-2.5 text-zinc-300 backdrop-blur hover:text-red-300" title="Block"><Ban size={17}/></button></div>}
+          </div>
+          {selfVisible && layout === 'stacked' && <div className="relative h-1/2 w-full overflow-hidden bg-zinc-800"><video ref={localVideo} autoPlay muted playsInline className="video-mirror h-full w-full object-cover"/>{!cameraOn && <div className="absolute inset-0 flex items-center justify-center bg-zinc-800"><CameraOff className="text-zinc-500"/></div>}<span className="absolute left-3 top-3 rounded-full bg-black/45 px-3 py-1 text-xs font-semibold backdrop-blur">You</span><button onClick={() => setSelfVisible(false)} className="absolute right-3 top-3 rounded-full bg-black/50 p-2 text-white backdrop-blur hover:bg-black/70" title="Minimize my video"><Minus size={17}/></button></div>}
+          {selfVisible && layout === 'pip' && <div onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={stopDrag} onPointerCancel={stopDrag} style={selfPosition ? { left: selfPosition.x, top: selfPosition.y, right: 'auto', touchAction: 'none' } : { touchAction: 'none' }} className={`absolute z-20 h-28 w-40 cursor-grab overflow-hidden rounded-2xl border-2 border-white/20 bg-zinc-800 shadow-2xl active:cursor-grabbing sm:h-36 sm:w-52 ${selfPosition ? '' : 'right-4 top-4'}`}><video ref={localVideo} autoPlay muted playsInline className="video-mirror pointer-events-none h-full w-full object-cover"/>{!cameraOn && <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-zinc-800"><CameraOff className="text-zinc-500"/></div>}<div className="absolute inset-x-0 top-0 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent p-2"><span className="flex items-center gap-1 text-[11px] font-semibold"><Move size={13}/> Drag</span><button onPointerDown={e => e.stopPropagation()} onClick={() => setSelfVisible(false)} className="rounded-full bg-black/45 p-1.5 hover:bg-black/70" title="Minimize my video"><Minus size={14}/></button></div><span className="absolute bottom-2 left-2 rounded-full bg-black/45 px-2 py-0.5 text-[11px] font-semibold">You</span></div>}
+          {!selfVisible && <button onClick={() => setSelfVisible(true)} className="absolute right-4 top-4 z-20 flex items-center gap-2 rounded-full bg-black/55 px-3 py-2 text-xs font-semibold backdrop-blur hover:bg-black/75"><Maximize2 size={15}/> Show my video</button>}
+          <div className="absolute left-1/2 top-4 z-30 flex -translate-x-1/2 gap-1 rounded-full bg-black/50 p-1.5 backdrop-blur-md"><button onClick={() => changeLayout('pip')} className={`rounded-full p-2 transition ${layout === 'pip' ? 'bg-white text-ink' : 'text-zinc-300 hover:bg-white/10'}`} title="Picture-in-picture view"><PictureInPicture2 size={16}/></button><button onClick={() => changeLayout('stacked')} className={`rounded-full p-2 transition ${layout === 'stacked' ? 'bg-white text-ink' : 'text-zinc-300 hover:bg-white/10'}`} title="Stacked view"><PanelsTopLeft size={16}/></button></div>
           <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-black/50 p-2 backdrop-blur-md">
             <Control onClick={toggleAudio} active={!muted} label={muted ? 'Unmute' : 'Mute'}>{muted ? <MicOff size={19}/> : <Mic size={19}/>}</Control>
             <Control onClick={toggleVideo} active={cameraOn} label={cameraOn ? 'Turn camera off' : 'Turn camera on'}>{cameraOn ? <Camera size={19}/> : <CameraOff size={19}/>}</Control>
@@ -112,7 +134,6 @@ function Room({ stream, onExit, user }) {
             <Control onClick={end} danger label="End chat"><X size={20}/></Control>
             <Control onClick={() => setChatOpen(x => !x)} active={chatOpen} label="Toggle chat"><MessageCircle size={19}/></Control>
           </div>
-          {session && <div className="absolute left-4 top-4 flex gap-2"><button onClick={() => setReporting(true)} className="rounded-full bg-black/40 p-2.5 text-zinc-300 backdrop-blur hover:text-red-300" title="Report"><Flag size={17}/></button><button onClick={block} className="rounded-full bg-black/40 p-2.5 text-zinc-300 backdrop-blur hover:text-red-300" title="Block"><Ban size={17}/></button></div>}
         </div>
       </section>
       {chatOpen && <aside className="flex h-72 shrink-0 flex-col border-l border-white/10 bg-zinc-950 lg:h-auto lg:w-80"><div className="border-b border-white/10 p-5"><h2 className="display font-semibold">Chat</h2><p className="mt-1 text-xs text-zinc-500">Messages disappear after this chat.</p></div><div className="flex-1 space-y-3 overflow-y-auto p-4">{messages.length === 0 && <p className="mt-8 text-center text-sm text-zinc-600">Say hello 👋</p>}{messages.map((m,i) => <div key={i} className={`flex ${m.mine ? 'justify-end' : ''}`}><span className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-sm ${m.mine ? 'bg-lime text-ink' : 'bg-zinc-800'}`}>{m.text}</span></div>)}</div><form onSubmit={postMessage} className="flex gap-2 border-t border-white/10 p-3"><input value={draft} onChange={e => setDraft(e.target.value)} placeholder="Type a message…" className="min-w-0 flex-1 rounded-xl border border-white/10 bg-zinc-900 px-3 text-sm outline-none focus:border-lime/50"/><button className="rounded-xl bg-white px-4 py-2 text-sm font-bold text-ink">Send</button></form></aside>}
