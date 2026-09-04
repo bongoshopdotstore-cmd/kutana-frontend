@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowLeft, ArrowRight, Ban, Camera, CameraOff, ChevronRight, Code2, Columns2, Flag, GraduationCap, LockKeyhole, Mail, Maximize2, MessageCircle, Mic, MicOff, Minus, Move, PanelsTopLeft, Phone, PictureInPicture2, ShieldCheck, UserRound, Video, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Ban, Camera, CameraOff, ChevronRight, Code2, Columns2, Download, Flag, GraduationCap, LockKeyhole, Mail, Maximize2, MessageCircle, Mic, MicOff, Minus, Move, PanelsTopLeft, Phone, PictureInPicture2, Share, ShieldCheck, SquarePlus, UserRound, Video, X } from 'lucide-react'
 
 const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '')
 const WS_BASE = (import.meta.env.VITE_WS_URL || '').replace(/\/$/, '')
@@ -228,6 +228,33 @@ function AuthModal({ onClose, onSuccess }) {
   return <div className="sheet-backdrop fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/75 p-4 backdrop-blur-sm sm:p-5"><form onSubmit={submit} className="dialog-enter my-auto w-full max-w-sm rounded-3xl border border-white/10 bg-zinc-900 p-6 sm:p-8"><div className="flex items-center justify-between"><h2 className="display text-2xl font-semibold">{register ? 'Create account' : 'Welcome back'}</h2><button className="spring-button" type="button" onClick={onClose}><X className="text-zinc-500"/></button></div><p className="mt-2 text-sm text-zinc-400">{register ? 'Keep your block list across visits.' : 'Sign in to your Kutana account.'}</p><input required minLength={3} value={form.username} onChange={e => setForm({...form,username:e.target.value})} placeholder="Username" className="mt-6 w-full rounded-xl border border-white/10 bg-zinc-950 p-3 text-base outline-none transition focus:border-lime/50"/>{register && <input type="email" value={form.email} onChange={e => setForm({...form,email:e.target.value})} placeholder="Email (optional)" className="mt-3 w-full rounded-xl border border-white/10 bg-zinc-950 p-3 text-base outline-none transition focus:border-lime/50"/>}<input required minLength={8} type="password" value={form.password} onChange={e => setForm({...form,password:e.target.value})} placeholder="Password" className="mt-3 w-full rounded-xl border border-white/10 bg-zinc-950 p-3 text-base outline-none transition focus:border-lime/50"/>{error && <p className="mt-3 text-sm text-red-400">{error}</p>}<button className="spring-button mt-5 w-full rounded-xl bg-lime py-3 font-bold text-ink">{register ? 'Create account' : 'Sign in'}</button><button type="button" onClick={() => { setRegister(x => !x); setError('') }} className="spring-button mt-4 w-full text-sm text-zinc-400">{register ? 'Already have an account? Sign in' : 'New here? Create an account'}</button></form></div>
 }
 
+function InstallPrompt() {
+  const [installEvent, setInstallEvent] = useState(null), [visible, setVisible] = useState(false), [ios, setIos] = useState(false)
+
+  useEffect(() => {
+    const installed = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
+    if (installed || sessionStorage.getItem('kutana-install-dismissed')) return
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent)
+    setIos(isIos)
+    const capturePrompt = event => { event.preventDefault(); setInstallEvent(event); setVisible(true) }
+    window.addEventListener('beforeinstallprompt', capturePrompt)
+    const timer = isIos ? window.setTimeout(() => setVisible(true), 1200) : null
+    return () => { window.removeEventListener('beforeinstallprompt', capturePrompt); if (timer) clearTimeout(timer) }
+  }, [])
+
+  const dismiss = () => { sessionStorage.setItem('kutana-install-dismissed', '1'); setVisible(false) }
+  const install = async () => {
+    if (!installEvent) return
+    await installEvent.prompt()
+    const choice = await installEvent.userChoice
+    setInstallEvent(null)
+    if (choice.outcome === 'accepted') setVisible(false)
+  }
+
+  if (!visible) return null
+  return <div className="install-backdrop fixed inset-0 z-[80] flex items-end justify-center bg-black/55 p-3 backdrop-blur-sm sm:items-center sm:p-5"><section role="dialog" aria-modal="true" aria-labelledby="install-title" className="install-card sheet-enter relative w-full max-w-md overflow-hidden rounded-[1.75rem] border border-white/10 bg-zinc-900 p-6 shadow-[0_30px_100px_rgba(0,0,0,.6)] sm:dialog-enter sm:rounded-[2rem] sm:p-7"><button onClick={dismiss} className="spring-button absolute right-4 top-4 rounded-full bg-white/5 p-2 text-zinc-400 hover:bg-white/10 hover:text-white" aria-label="Not now"><X size={18}/></button><div className="flex items-center gap-4"><img src="/kutana-mark.svg" alt="" className="h-16 w-16 rounded-2xl shadow-[0_10px_35px_rgba(183,243,74,.2)]"/><div><p className="text-xs font-bold uppercase tracking-[.18em] text-lime">Take Kutana with you</p><h2 id="install-title" className="display mt-1 text-2xl font-semibold">Install the app</h2></div></div>{ios ? <><p className="mt-5 leading-7 text-zinc-400">Install Kutana from Safari for quick, full-screen access.</p><ol className="mt-5 space-y-3"><li className="install-step"><Share size={19}/><span>Tap the <strong>Share</strong> button in Safari.</span></li><li className="install-step"><SquarePlus size={19}/><span>Select <strong>Add to Home Screen</strong>.</span></li></ol><button onClick={dismiss} className="spring-button mt-6 w-full rounded-xl bg-lime py-3.5 font-bold text-ink">Got it</button></> : <><p className="mt-5 leading-7 text-zinc-400">Add Kutana to your home screen for faster access and an app-like, full-screen experience.</p><div className="mt-6 grid grid-cols-[auto_1fr] gap-3"><button onClick={dismiss} className="spring-button rounded-xl border border-white/10 px-5 py-3.5 font-semibold text-zinc-300 hover:bg-white/5">Not now</button><button onClick={install} className="spring-button flex items-center justify-center gap-2 rounded-xl bg-lime px-5 py-3.5 font-bold text-ink"><Download size={18}/> Install Kutana</button></div></>}</section></div>
+}
+
 export default function App() {
   const validPages = ['home', 'guidelines', 'privacy', 'terms', 'developer']
   const requestedPage = new URLSearchParams(window.location.search).get('page') || 'home'
@@ -247,5 +274,5 @@ export default function App() {
   if (page === 'privacy') return <PrivacyPage onNavigate={navigatePage}/>
   if (page === 'terms') return <TermsPage onNavigate={navigatePage}/>
   if (page === 'developer') return <DeveloperPage onNavigate={navigatePage}/>
-  return <>{screen === 'home' && <Landing onStart={() => setScreen('permission')} user={user} onAuth={() => setAuthOpen(true)} onLogout={() => api('auth/logout/', {method:'POST'}).then(() => setUser(null))} onNavigate={navigatePage}/>} {screen === 'permission' && <Permission onAllow={allow} onBack={() => setScreen('home')} error={error}/>} {screen === 'room' && stream && <Room stream={stream} onExit={home} user={user}/>} {authOpen && <AuthModal onClose={() => setAuthOpen(false)} onSuccess={u => { setUser(u); setAuthOpen(false) }}/>}</>
+  return <>{screen === 'home' && <Landing onStart={() => setScreen('permission')} user={user} onAuth={() => setAuthOpen(true)} onLogout={() => api('auth/logout/', {method:'POST'}).then(() => setUser(null))} onNavigate={navigatePage}/>} {screen === 'permission' && <Permission onAllow={allow} onBack={() => setScreen('home')} error={error}/>} {screen === 'room' && stream && <Room stream={stream} onExit={home} user={user}/>} {authOpen && <AuthModal onClose={() => setAuthOpen(false)} onSuccess={u => { setUser(u); setAuthOpen(false) }}/>} {screen === 'home' && <InstallPrompt/>}</>
 }
