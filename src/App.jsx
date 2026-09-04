@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, Ban, Camera, CameraOff, ChevronRight, Flag, LockKeyhole, MessageCircle, Mic, MicOff, ShieldCheck, Sparkles, UserRound, Video, X } from 'lucide-react'
 
+const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '')
+const WS_BASE = (import.meta.env.VITE_WS_URL || '').replace(/\/$/, '')
+
 const api = async (path, options = {}) => {
-  const response = await fetch(`/api/${path}`, { credentials: 'include', headers: { 'Content-Type': 'application/json' }, ...options })
+  const response = await fetch(`${API_BASE}/${path}`, { credentials: 'include', headers: { 'Content-Type': 'application/json' }, ...options })
   const data = await response.json()
   if (!response.ok) throw new Error(data.error || 'Something went wrong')
   return data
@@ -53,7 +56,8 @@ function Room({ stream, onExit, user }) {
     let cancelled = false
     api('rtc-config/').then(x => { iceServers.current = x.iceServers }).catch(() => {})
     const protocol = location.protocol === 'https:' ? 'wss' : 'ws'
-    const socket = new WebSocket(`${protocol}://${location.host}/ws/chat/`)
+    const socketUrl = WS_BASE ? `${WS_BASE}/ws/chat/` : `${protocol}://${location.host}/ws/chat/`
+    const socket = new WebSocket(socketUrl)
     ws.current = socket
     socket.onopen = () => socket.send(JSON.stringify({ type: 'join' }))
     socket.onmessage = async ({ data }) => {
