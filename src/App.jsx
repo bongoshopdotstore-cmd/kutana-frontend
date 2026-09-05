@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowLeft, ArrowRight, Ban, Camera, CameraOff, ChevronRight, Code2, Columns2, Download, Flag, GraduationCap, Headphones, LockKeyhole, Mail, Maximize2, MessageCircle, Mic, MicOff, Minus, Move, PanelsTopLeft, Phone, PictureInPicture2, Share, ShieldCheck, SquarePlus, UserRound, Video, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Ban, Camera, CameraOff, ChevronRight, Code2, Columns2, Download, Flag, GraduationCap, Headphones, LockKeyhole, Mail, Maximize2, MessageCircle, Mic, MicOff, Minus, Move, PanelsTopLeft, Phone, PictureInPicture2, Share, ShieldCheck, SquarePlus, UserRound, Users, Video, X } from 'lucide-react'
 
 const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '')
 const WS_BASE = (import.meta.env.VITE_WS_URL || '').replace(/\/$/, '')
@@ -28,7 +28,7 @@ function Landing({ onStart, user, onAuth, onLogout, onNavigate }) {
     </nav>
     <section className="page-enter relative z-10 mx-auto flex max-w-6xl flex-col items-center px-5 pb-16 pt-12 text-center sm:px-6 sm:pt-20 md:pt-28">
       <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-lime/20 bg-lime/10 px-4 py-2 text-sm font-semibold text-lime"><span className="h-2 w-2 rounded-full bg-lime animate-pulse"/>Real people. Real conversations.</div>
-      <h1 className="display max-w-4xl text-[2.75rem] font-semibold leading-[1.02] tracking-[-.055em] min-[390px]:text-5xl sm:text-7xl md:text-8xl">The internet feels better <span className="text-lime">face to face.</span></h1>
+      <h1 className="display max-w-4xl text-[2.75rem] font-semibold leading-[1.02] tracking-[-.055em] min-[390px]:text-5xl sm:text-7xl md:text-8xl">Confidence grows <span className="text-lime">one conversation at a time.</span></h1>
       <p className="mt-7 max-w-2xl text-lg leading-8 text-zinc-400 md:text-xl">Meet someone new, somewhere in the world. No feeds, no followers—just one genuine conversation at a time.</p>
       <button onClick={onStart} className="spring-button group mt-10 flex items-center gap-3 rounded-full bg-lime px-8 py-4 text-base font-bold text-ink shadow-[0_0_45px_rgba(183,243,74,.2)] hover:bg-[#c5fb60]">Start a conversation <ArrowRight size={19} className="transition-transform duration-500 ease-spring group-hover:translate-x-1"/></button>
       <p className="mt-4 flex items-center gap-2 text-xs text-zinc-500"><ShieldCheck size={14}/> 18+ only · Be kind · Stay safe</p>
@@ -101,6 +101,7 @@ function Control({ onClick, active = true, danger = false, children, label }) {
 function Room({ stream, onExit, user }) {
   const localVideo = useRef(null), remoteVideo = useRef(null), videoStage = useRef(null), ws = useRef(null), peer = useRef(null), dragState = useRef(null)
   const [status, setStatus] = useState('connecting'), [muted, setMuted] = useState(false), [cameraOn, setCameraOn] = useState(true)
+  const [waitingCount, setWaitingCount] = useState(0)
   const [messages, setMessages] = useState([]), [draft, setDraft] = useState(''), [chatOpen, setChatOpen] = useState(() => window.innerWidth >= 1024)
   const [session, setSession] = useState(null), [partnerUserId, setPartnerUserId] = useState(null), [reporting, setReporting] = useState(false)
   const [layout, setLayout] = useState('pip'), [selfVisible, setSelfVisible] = useState(true), [selfPosition, setSelfPosition] = useState(null)
@@ -138,6 +139,7 @@ function Room({ stream, onExit, user }) {
     socket.onmessage = async ({ data }) => {
       if (cancelled) return
       const msg = JSON.parse(data)
+      if (msg.type === 'queue-count') setWaitingCount(Number(msg.count) || 0)
       if (msg.type === 'waiting') setStatus('waiting')
       if (msg.type === 'matched') { setSession(msg.sessionId); setPartnerUserId(msg.partnerUserId); setStatus('matched'); setMessages([]); await createPeer(msg.initiator) }
       if (msg.type === 'offer') { await ensurePeer(); await peer.current.setRemoteDescription(msg.sdp); const answer = await peer.current.createAnswer(); await peer.current.setLocalDescription(answer); send({ type: 'answer', sdp: answer }) }
@@ -187,7 +189,7 @@ function Room({ stream, onExit, user }) {
   const stopDrag = e => { if (dragState.current?.pointerId === e.pointerId) dragState.current = null }
 
   return <div className="app-height page-enter flex flex-col overflow-hidden bg-ink">
-    <header className="room-header flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-3 sm:h-16 sm:px-5"><Logo compact/><div className="room-status flex min-w-0 items-center gap-2 text-xs text-zinc-400"><span className={`h-2 w-2 shrink-0 rounded-full transition-colors duration-500 ${status === 'live' ? 'bg-lime' : 'bg-amber-400 animate-pulse'}`}/><span className="status-label truncate">{status === 'live' ? 'Connected' : status === 'waiting' ? 'Finding someone…' : status === 'left' ? 'Stranger left' : 'Connecting…'}</span></div><button onClick={end} className="spring-button text-sm text-zinc-400 hover:text-white">Leave</button></header>
+    <header className="room-header flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-3 sm:h-16 sm:px-5"><Logo compact/><div className="room-presence flex min-w-0 items-center gap-2"><div className="room-status flex min-w-0 items-center gap-2 text-xs text-zinc-400"><span className={`h-2 w-2 shrink-0 rounded-full transition-colors duration-500 ${status === 'live' ? 'bg-lime' : 'bg-amber-400 animate-pulse'}`}/><span className="status-label truncate">{status === 'live' ? 'Connected' : status === 'waiting' ? 'Finding someone…' : status === 'left' ? 'Stranger left' : 'Connecting…'}</span></div><div className="queue-count flex shrink-0 items-center gap-1.5 rounded-full border border-lime/15 bg-lime/10 px-2.5 py-1.5 text-[11px] font-bold text-lime sm:px-3 sm:text-xs"><Users size={14}/><span className="queue-short sm:hidden">{waitingCount} waiting</span><span className="queue-long hidden sm:inline">{waitingCount} finding a match</span></div></div><button onClick={end} className="spring-button text-sm text-zinc-400 hover:text-white">Leave</button></header>
     <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
       <section className="video-shell relative flex min-h-0 flex-1 bg-zinc-950 p-1.5 sm:p-5">
         <div ref={videoStage} className={`video-stage relative h-full w-full overflow-hidden rounded-2xl border border-white/10 bg-zinc-900 sm:rounded-3xl ${layout === 'side' && selfVisible ? 'flex' : 'block'}`}>
