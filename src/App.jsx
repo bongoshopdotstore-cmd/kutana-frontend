@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowLeft, ArrowRight, Ban, Camera, CameraOff, ChevronRight, Code2, Columns2, Download, Flag, GraduationCap, LockKeyhole, Mail, Maximize2, MessageCircle, Mic, MicOff, Minus, Move, PanelsTopLeft, Phone, PictureInPicture2, Share, ShieldCheck, SquarePlus, UserRound, Video, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Ban, Camera, CameraOff, ChevronRight, Code2, Columns2, Download, Flag, GraduationCap, Headphones, LockKeyhole, Mail, Maximize2, MessageCircle, Mic, MicOff, Minus, Move, PanelsTopLeft, Phone, PictureInPicture2, Share, ShieldCheck, SquarePlus, UserRound, Video, X } from 'lucide-react'
 
 const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '')
 const WS_BASE = (import.meta.env.VITE_WS_URL || '').replace(/\/$/, '')
@@ -91,7 +91,7 @@ function DeveloperPage({ onNavigate }) {
 }
 
 function Permission({ onAllow, onBack, error }) {
-  return <div className="app-height flex items-center justify-center overflow-y-auto bg-ink px-4 py-6 grid-bg sm:px-6"><div className="dialog-enter glass w-full max-w-md rounded-[1.75rem] p-6 text-center shadow-2xl sm:rounded-[2rem] sm:p-10"><div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-lime/10 text-lime"><Video size={28}/></div><h2 className="display mt-6 text-3xl font-semibold tracking-tight">Ready to say hello?</h2><p className="mt-3 leading-7 text-zinc-400">We need camera and microphone access so the other person can see and hear you.</p>{error && <p className="mt-4 rounded-xl bg-red-500/10 p-3 text-sm text-red-300">{error}</p>}<button onClick={onAllow} className="spring-button mt-7 w-full rounded-xl bg-lime py-3.5 font-bold text-ink hover:bg-[#c5fb60]">Allow camera & microphone</button><button onClick={onBack} className="spring-button mt-3 text-sm text-zinc-500 hover:text-white">Go back</button><div className="mt-7 flex items-center justify-center gap-2 border-t border-white/5 pt-6 text-xs text-zinc-500"><LockKeyhole size={14}/> Your call is not recorded</div></div></div>
+  return <div className="app-height flex items-center justify-center overflow-y-auto bg-ink px-4 py-6 grid-bg sm:px-6"><div className="dialog-enter glass w-full max-w-md rounded-[1.75rem] p-6 text-center shadow-2xl sm:rounded-[2rem] sm:p-10"><div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-lime/10 text-lime"><Video size={28}/></div><h2 className="display mt-6 text-3xl font-semibold tracking-tight">Ready to say hello?</h2><p className="mt-3 leading-7 text-zinc-400">We need camera and microphone access so the other person can see and hear you.</p><div className="mt-5 flex items-start gap-3 rounded-2xl border border-white/8 bg-black/20 p-3 text-left text-xs leading-5 text-zinc-400"><Headphones size={18} className="mt-0.5 shrink-0 text-lime"/><span>Use headphones when two devices are nearby to prevent speaker-to-microphone feedback.</span></div>{error && <p className="mt-4 rounded-xl bg-red-500/10 p-3 text-sm text-red-300">{error}</p>}<button onClick={onAllow} className="spring-button mt-7 w-full rounded-xl bg-lime py-3.5 font-bold text-ink hover:bg-[#c5fb60]">Allow camera & microphone</button><button onClick={onBack} className="spring-button mt-3 text-sm text-zinc-500 hover:text-white">Go back</button><div className="mt-7 flex items-center justify-center gap-2 border-t border-white/5 pt-6 text-xs text-zinc-500"><LockKeyhole size={14}/> Your call is not recorded</div></div></div>
 }
 
 function Control({ onClick, active = true, danger = false, children, label }) {
@@ -255,6 +255,27 @@ function InstallPrompt() {
   return <div className="install-backdrop fixed inset-0 z-[80] flex items-end justify-center bg-black/55 p-3 backdrop-blur-sm sm:items-center sm:p-5"><section role="dialog" aria-modal="true" aria-labelledby="install-title" className="install-card sheet-enter relative w-full max-w-md overflow-hidden rounded-[1.75rem] border border-white/10 bg-zinc-900 p-6 shadow-[0_30px_100px_rgba(0,0,0,.6)] sm:dialog-enter sm:rounded-[2rem] sm:p-7"><button onClick={dismiss} className="spring-button absolute right-4 top-4 rounded-full bg-white/5 p-2 text-zinc-400 hover:bg-white/10 hover:text-white" aria-label="Not now"><X size={18}/></button><div className="flex items-center gap-4"><img src="/kutana-mark.svg" alt="" className="h-16 w-16 rounded-2xl shadow-[0_10px_35px_rgba(183,243,74,.2)]"/><div><p className="text-xs font-bold uppercase tracking-[.18em] text-lime">Take Kutana with you</p><h2 id="install-title" className="display mt-1 text-2xl font-semibold">Install the app</h2></div></div>{ios ? <><p className="mt-5 leading-7 text-zinc-400">Install Kutana from Safari for quick, full-screen access.</p><ol className="mt-5 space-y-3"><li className="install-step"><Share size={19}/><span>Tap the <strong>Share</strong> button in Safari.</span></li><li className="install-step"><SquarePlus size={19}/><span>Select <strong>Add to Home Screen</strong>.</span></li></ol><button onClick={dismiss} className="spring-button mt-6 w-full rounded-xl bg-lime py-3.5 font-bold text-ink">Got it</button></> : <><p className="mt-5 leading-7 text-zinc-400">Add Kutana to your home screen for faster access and an app-like, full-screen experience.</p><div className="mt-6 grid grid-cols-[auto_1fr] gap-3"><button onClick={dismiss} className="spring-button rounded-xl border border-white/10 px-5 py-3.5 font-semibold text-zinc-300 hover:bg-white/5">Not now</button><button onClick={install} className="spring-button flex items-center justify-center gap-2 rounded-xl bg-lime px-5 py-3.5 font-bold text-ink"><Download size={18}/> Install Kutana</button></div></>}</section></div>
 }
 
+async function getOptimizedCallMedia() {
+  const supported = navigator.mediaDevices.getSupportedConstraints?.() || {}
+  const audio = {}
+  if (supported.echoCancellation) audio.echoCancellation = { ideal: true }
+  if (supported.noiseSuppression) audio.noiseSuppression = { ideal: true }
+  if (supported.autoGainControl) audio.autoGainControl = { ideal: true }
+  if (supported.voiceIsolation) audio.voiceIsolation = { ideal: true }
+  if (supported.channelCount) audio.channelCount = { ideal: 1 }
+  if (supported.sampleRate) audio.sampleRate = { ideal: 48000 }
+  if (supported.sampleSize) audio.sampleSize = { ideal: 16 }
+  if (supported.latency) audio.latency = { ideal: 0.02 }
+
+  const media = await navigator.mediaDevices.getUserMedia({
+    video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30, max: 30 }, facingMode: { ideal: 'user' } },
+    audio
+  })
+  const microphone = media.getAudioTracks()[0]
+  if (microphone) microphone.contentHint = 'speech'
+  return media
+}
+
 export default function App() {
   const validPages = ['home', 'guidelines', 'privacy', 'terms', 'developer']
   const requestedPage = new URLSearchParams(window.location.search).get('page') || 'home'
@@ -267,7 +288,7 @@ export default function App() {
     return () => window.removeEventListener('popstate', syncPage)
   }, [])
   useEffect(() => { const names = { home: 'Meet someone new', guidelines: 'Community Guidelines', privacy: 'Privacy Notice', terms: 'Terms of Use', developer: 'Developer' }; document.title = `${names[page]} — Kutana` }, [page])
-  const allow = async () => { try { const media = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } }, audio: { echoCancellation: true, noiseSuppression: true } }); setStream(media); setScreen('room') } catch { setError('Camera or microphone access was denied. Check your browser permissions and try again.') } }
+  const allow = async () => { try { const media = await getOptimizedCallMedia(); setStream(media); setScreen('room') } catch { setError('Camera or microphone access was denied. Check your browser permissions and try again.') } }
   const home = () => { stream?.getTracks().forEach(t => t.stop()); setStream(null); setScreen('home') }
   const navigatePage = next => { window.history.pushState({}, '', next === 'home' ? '/' : `/?page=${next}`); setPage(next); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   if (page === 'guidelines') return <GuidelinesPage onNavigate={navigatePage}/>
