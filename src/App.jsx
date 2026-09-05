@@ -28,7 +28,7 @@ function Landing({ onStart, user, onAuth, onLogout, onNavigate }) {
     </nav>
     <section className="page-enter relative z-10 mx-auto flex max-w-6xl flex-col items-center px-5 pb-16 pt-12 text-center sm:px-6 sm:pt-20 md:pt-28">
       <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-lime/20 bg-lime/10 px-4 py-2 text-sm font-semibold text-lime"><span className="h-2 w-2 rounded-full bg-lime animate-pulse"/>Real people. Real conversations.</div>
-      <h1 className="display max-w-4xl text-[2.75rem] font-semibold leading-[1.02] tracking-[-.055em] min-[390px]:text-5xl sm:text-7xl md:text-8xl">Confidence grows <span className="text-lime">one conversation at a time.</span></h1>
+      <h1 className="display max-w-4xl text-[2.75rem] font-semibold leading-[1.02] tracking-[-.055em] min-[390px]:text-5xl sm:text-7xl md:text-8xl">Every Stranger Has a Story. <span className="text-lime">Build your confidence.</span></h1>
       <p className="mt-7 max-w-2xl text-lg leading-8 text-zinc-400 md:text-xl">Meet someone new, somewhere in the world. No feeds, no followers—just one genuine conversation at a time.</p>
       <button onClick={onStart} className="spring-button group mt-10 flex items-center gap-3 rounded-full bg-lime px-8 py-4 text-base font-bold text-ink shadow-[0_0_45px_rgba(183,243,74,.2)] hover:bg-[#c5fb60]">Start a conversation <ArrowRight size={19} className="transition-transform duration-500 ease-spring group-hover:translate-x-1"/></button>
       <p className="mt-4 flex items-center gap-2 text-xs text-zinc-500"><ShieldCheck size={14}/> 18+ only · Be kind · Stay safe</p>
